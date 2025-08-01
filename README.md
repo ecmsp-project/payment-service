@@ -7,9 +7,9 @@ Payment Service is one of the microservices in the Scalable E-Commerce Platform 
 - **Payment Creation** - generating payment links for orders
 - **Payment Processing** - simulating successful payments
 - **Status Management** - tracking payment status (PENDING, PAID, EXPIRED, CANCELLED, FAILED)
+- **Automatic Expiration** - Quartz Scheduler automatically expires payments after 10 minutes
 - **Outbox Pattern** - preparation for communication with other services
-- **REST API** - comprehensive API for payment operations
-- **Swagger Documentation** - interactive API documentation
+- **Swagger** - documentation
 
 ## Architecture
 
@@ -50,6 +50,15 @@ spring.datasource.password=postgres
 ### Port
 
 The service runs on port `8081`.
+
+### Quartz Scheduler
+
+The service uses Quartz Scheduler for automatic payment expiration:
+
+- **Schedule**: Every 10 minutes (13:00, 13:10, 13:20, 13:30, ...)
+- **Job**: PaymentExpirationJob - expires payments with status PENDING
+- **Store**: In-memory (simple configuration)
+- **Start**: From the next full minute after application startup
 
 ## Setup and Running
 
@@ -92,15 +101,16 @@ src/main/java/com/ecmsp/paymentservice/
 │   ├── PaymentStatus.java
 │   ├── PaymentEventType.java
 │   └── EventStatus.java
-├── exception/
-│   └── GlobalExceptionHandler.java
+├── job/
+│   └── PaymentExpirationJob.java
 ├── repository/
 │   ├── PaymentRepository.java
 │   └── PaymentEventRepository.java
 ├── service/
 │   └── PaymentService.java
 └── config/
-    └── OpenApiConfig.java
+    ├── OpenApiConfig.java
+    └── QuartzConfig.java
 ```
 
 ## Database Schema
@@ -133,3 +143,14 @@ The service automatically creates the following tables:
 - `processed_at` - processing timestamp
 - `created_at` - creation timestamp
 
+## Scheduled Jobs
+
+### PaymentExpirationJob
+
+- **Purpose**: Automatically expires payments that have passed their expiration time
+- **Schedule**: Every 10 minutes
+- **Logic**: Finds payments with status PENDING and expires_at <= current time
+- **Actions**:
+  - Changes status to EXPIRED
+  - Creates PaymentEvent for Outbox Pattern
+  - Logs expiration details
