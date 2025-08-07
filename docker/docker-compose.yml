@@ -72,7 +72,4 @@ volumes:
 
 secrets:
     payment-service-db-password:
-        file: ./database-env.txt
-
-# docker compose -f product-docker-compose.yaml up cart-service-db
-# docker compose -f product-docker-compose.yaml down -v
+        file: ./database-password.txt
