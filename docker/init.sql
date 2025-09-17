@@ -1,25 +1,72 @@
-CREATE TABLE cart (
-                      cart_id SERIAL PRIMARY KEY,
-                      user_id BIGINT NOT NULL,
-                      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- Created by Vertabelo (http://vertabelo.com)
+-- Last modification date: 2025-09-17 17:38:21.89
+
+-- tables
+-- Table: payment_events
+CREATE TABLE payment_events (
+                                id bigserial  NOT NULL,
+                                payment_id bigint  NOT NULL,
+                                event_type varchar(50)  NOT NULL,
+                                event_data text  NULL,
+                                status varchar(20)  NOT NULL DEFAULT 'pending',
+                                retry_count integer  NULL DEFAULT 0,
+                                processed_at timestamp  NULL,
+                                created_at timestamp  NOT NULL DEFAULT current_timestamp,
+                                CONSTRAINT CHECK_1 CHECK (( event_type IN ( 'PAYMENT_CREATED' , 'PAYMENT_PAID' , 'PAYMENT_EXPIRED' , 'PAYMENT_FAILED' ) )) NOT DEFERRABLE INITIALLY IMMEDIATE,
+                                CONSTRAINT CHECK_2 CHECK (( status IN ( 'PENDING' , 'PROCESSED' , 'FAILED' ) )) NOT DEFERRABLE INITIALLY IMMEDIATE,
+                                CONSTRAINT payment_events_pk PRIMARY KEY (id)
 );
 
-CREATE TABLE cart_product (
-                              cart_id INT,
-                              product_id INT,
-                              quantity INT DEFAULT 1,
-                              PRIMARY KEY (cart_id, product_id),
-                              FOREIGN KEY (cart_id) REFERENCES cart(cart_id) ON DELETE CASCADE
+CREATE INDEX idx_payment_events_payment_id on payment_events (payment_id ASC);
+
+CREATE INDEX idx_payment_events_status on payment_events (status ASC);
+
+CREATE INDEX idx_payment_events_event_type on payment_events (event_type ASC);
+
+CREATE INDEX idx_payment_events_created_at on payment_events (created_at ASC);
+
+CREATE INDEX idx_payment_events_status_retry_count on payment_events (status ASC,retry_count ASC);
+
+-- Table: payments
+CREATE TABLE payments (
+                          id bigserial  NOT NULL,
+                          order_id bigint  NOT NULL,
+                          user_id bigint  NOT NULL,
+                          amount numeric(10,2)  NOT NULL,
+                          currency varchar(3)  NOT NULL DEFAULT 'pln',
+                          status varchar(20)  NOT NULL DEFAULT 'pending',
+                          payment_link varchar(255)  NULL,
+                          expires_at timestamp  NOT NULL,
+                          paid_at timestamp  NULL,
+                          created_at timestamp  NOT NULL DEFAULT current_timestamp,
+                          updated_at timestamp  NOT NULL DEFAULT current_timestamp,
+                          version bigint  NULL DEFAULT 0,
+                          CONSTRAINT AK_0 UNIQUE (payment_link) NOT DEFERRABLE  INITIALLY IMMEDIATE,
+                          CONSTRAINT CHECK_0 CHECK (( status IN ( 'PENDING' , 'PAID' , 'EXPIRED' , 'CANCELLED' , 'FAILED' ) )) NOT DEFERRABLE INITIALLY IMMEDIATE,
+                          CONSTRAINT payments_pk PRIMARY KEY (id)
 );
 
-INSERT INTO cart (cart_id, user_id) VALUES
-                                        (1, 101),
-                                        (2, 102),
-                                        (3, 103);
+CREATE INDEX idx_payments_order_id on payments (order_id ASC);
 
-INSERT INTO cart_product (cart_id, product_id, quantity) VALUES
-                                                             (1, 1001, 2),
-                                                             (1, 1002, 1),
-                                                             (2, 1003, 5),
-                                                             (3, 1001, 1),
-                                                             (3, 1004, 3);
+CREATE INDEX idx_payments_user_id on payments (user_id ASC);
+
+CREATE INDEX idx_payments_status on payments (status ASC);
+
+CREATE INDEX idx_payments_expires_at on payments (expires_at ASC);
+
+CREATE INDEX idx_payments_payment_link on payments (payment_link ASC);
+
+CREATE INDEX idx_payments_status_expires_at on payments (status ASC,expires_at ASC);
+
+-- foreign keys
+-- Reference: fk_payment_events_payment_id (table: payment_events)
+ALTER TABLE payment_events ADD CONSTRAINT fk_payment_events_payment_id
+    FOREIGN KEY (payment_id)
+        REFERENCES payments (id)
+        ON DELETE  CASCADE
+        NOT DEFERRABLE
+            INITIALLY IMMEDIATE
+;
+
+-- End of file.
+
