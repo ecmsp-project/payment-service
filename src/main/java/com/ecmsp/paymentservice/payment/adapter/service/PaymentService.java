@@ -6,6 +6,8 @@ import com.ecmsp.paymentservice.payment.adapter.db.PaymentEntity;
 import com.ecmsp.paymentservice.payment.adapter.db.PaymentEventEntity;
 import com.ecmsp.paymentservice.payment.domain.PaymentState;
 import com.ecmsp.paymentservice.payment.domain.PaymentToCreate;
+import com.ecmsp.paymentservice.payment.domain.OrderId;
+import com.ecmsp.paymentservice.payment.domain.ClientId;
 import com.ecmsp.paymentservice.payment.adapter.repository.PaymentEventRepository;
 import com.ecmsp.paymentservice.payment.adapter.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,32 +33,21 @@ public class PaymentService {
 
     @Transactional
     public PaymentResponse createPayment(CreatePaymentRequest request) {
-        log.info("Creating payment for order: {}", request.getOrderId());
-
-        Optional<PaymentEntity> existingPayment = paymentRepository.findByOrderId(request.getOrderId());
-        if (existingPayment.isPresent()) {
-            throw new RuntimeException("Payment for order " + request.getOrderId() + " already exists");
-        }
-
-        PaymentEntity paymentEntity = new PaymentEntity();
-        paymentEntity.setOrderId(request.getOrderId());
-        paymentEntity.setUserId(request.getUserId());
-        paymentEntity.setAmount(request.getAmount());
-        paymentEntity.setCurrency(request.getCurrency());
-        paymentEntity.setStatus(PaymentState.PENDING);
-        paymentEntity.setPaymentLink(generatePaymentLink());
-        paymentEntity.setExpiresAt(LocalDateTime.now().plusMinutes(PAYMENT_EXPIRY_MINUTES));
-
-        PaymentEntity savedPaymentEntity = paymentRepository.save(paymentEntity);
-
-        createPaymentEvent(savedPaymentEntity.getId(), PaymentState.CREATED);
-        
-        log.info("Payment created with ID: {}", savedPaymentEntity.getId());
-        return mapToPaymentResponse(savedPaymentEntity);
+        PaymentToCreate paymentToCreate = new PaymentToCreate(
+                new OrderId(request.getOrderId()),
+                new ClientId(request.getUserId()),
+                request.getAmount(),
+                LocalDateTime.now()
+        );
+        return createPaymentInternal(paymentToCreate);
     }
 
     @Transactional
     public PaymentResponse createPaymentFromDomain(PaymentToCreate paymentToCreate) {
+        return createPaymentInternal(paymentToCreate);
+    }
+
+    private PaymentResponse createPaymentInternal(PaymentToCreate paymentToCreate) {
         log.info("Creating payment for order: {}", paymentToCreate.orderId().value());
 
         Optional<PaymentEntity> existingPayment = paymentRepository.findByOrderId(paymentToCreate.orderId().value());
