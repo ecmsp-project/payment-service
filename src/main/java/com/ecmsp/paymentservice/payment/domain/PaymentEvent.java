@@ -1,4 +1,4 @@
-package com.ecmsp.paymentservice.entity;
+package com.ecmsp.paymentservice.payment.domain;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

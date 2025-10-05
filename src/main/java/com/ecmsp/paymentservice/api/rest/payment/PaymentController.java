@@ -1,8 +1,8 @@
-package com.ecmsp.paymentservice.controller;
+package com.ecmsp.paymentservice.api.rest.payment;
 
-import com.ecmsp.paymentservice.dto.CreatePaymentRequest;
-import com.ecmsp.paymentservice.dto.PaymentResponse;
-import com.ecmsp.paymentservice.service.PaymentService;
+import com.ecmsp.paymentservice.api.rest.payment.dto.CreatePaymentRequest;
+import com.ecmsp.paymentservice.api.rest.payment.dto.PaymentResponse;
+import com.ecmsp.paymentservice.payment.adapter.service.PaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

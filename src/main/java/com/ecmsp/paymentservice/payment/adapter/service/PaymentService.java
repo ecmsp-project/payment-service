@@ -1,13 +1,13 @@
-package com.ecmsp.paymentservice.service;
+package com.ecmsp.paymentservice.payment.adapter.service;
 
-import com.ecmsp.paymentservice.dto.CreatePaymentRequest;
-import com.ecmsp.paymentservice.dto.PaymentResponse;
-import com.ecmsp.paymentservice.entity.Payment;
-import com.ecmsp.paymentservice.entity.PaymentEvent;
-import com.ecmsp.paymentservice.entity.PaymentEventType;
-import com.ecmsp.paymentservice.entity.PaymentStatus;
-import com.ecmsp.paymentservice.repository.PaymentEventRepository;
-import com.ecmsp.paymentservice.repository.PaymentRepository;
+import com.ecmsp.paymentservice.api.rest.payment.dto.CreatePaymentRequest;
+import com.ecmsp.paymentservice.api.rest.payment.dto.PaymentResponse;
+import com.ecmsp.paymentservice.payment.domain.Payment;
+import com.ecmsp.paymentservice.payment.domain.PaymentEvent;
+import com.ecmsp.paymentservice.payment.domain.PaymentEventType;
+import com.ecmsp.paymentservice.payment.domain.PaymentStatus;
+import com.ecmsp.paymentservice.payment.adapter.repository.PaymentEventRepository;
+import com.ecmsp.paymentservice.payment.adapter.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

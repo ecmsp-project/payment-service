@@ -1,7 +1,7 @@
-package com.ecmsp.paymentservice.repository;
+package com.ecmsp.paymentservice.payment.adapter.repository;
 
-import com.ecmsp.paymentservice.entity.Payment;
-import com.ecmsp.paymentservice.entity.PaymentStatus;
+import com.ecmsp.paymentservice.payment.domain.Payment;
+import com.ecmsp.paymentservice.payment.domain.PaymentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

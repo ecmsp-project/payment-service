@@ -1,4 +1,4 @@
-package com.ecmsp.paymentservice.dto;
+package com.ecmsp.paymentservice.api.rest.payment.dto;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;

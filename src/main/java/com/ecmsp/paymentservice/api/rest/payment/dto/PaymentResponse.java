@@ -1,6 +1,6 @@
-package com.ecmsp.paymentservice.dto;
+package com.ecmsp.paymentservice.api.rest.payment.dto;
 
-import com.ecmsp.paymentservice.entity.PaymentStatus;
+import com.ecmsp.paymentservice.payment.domain.PaymentStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
