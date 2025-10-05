@@ -8,6 +8,7 @@ import com.ecmsp.paymentservice.payment.domain.PaymentState;
 import com.ecmsp.paymentservice.payment.domain.PaymentToCreate;
 import com.ecmsp.paymentservice.payment.domain.OrderId;
 import com.ecmsp.paymentservice.payment.domain.ClientId;
+import com.ecmsp.paymentservice.payment.domain.Currency;
 import com.ecmsp.paymentservice.payment.adapter.repository.PaymentEventRepository;
 import com.ecmsp.paymentservice.payment.adapter.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +38,7 @@ public class PaymentService {
                 new OrderId(request.getOrderId()),
                 new ClientId(request.getUserId()),
                 request.getAmount(),
+                Currency.PLN,
                 LocalDateTime.now()
         );
         return createPaymentInternal(paymentToCreate);
@@ -59,7 +61,7 @@ public class PaymentService {
         paymentEntity.setOrderId(paymentToCreate.orderId().value());
         paymentEntity.setUserId(paymentToCreate.clientId().value());
         paymentEntity.setAmount(paymentToCreate.amount());
-        paymentEntity.setCurrency("PLN");
+        paymentEntity.setCurrency(paymentToCreate.currency().getCode());
         paymentEntity.setStatus(PaymentState.PENDING);
         paymentEntity.setPaymentLink(generatePaymentLink());
         paymentEntity.setExpiresAt(LocalDateTime.now().plusMinutes(PAYMENT_EXPIRY_MINUTES));

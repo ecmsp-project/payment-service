@@ -3,6 +3,7 @@ package com.ecmsp.paymentservice.api.kafka;
 import com.ecmsp.paymentservice.payment.domain.PaymentToCreate;
 import com.ecmsp.paymentservice.payment.domain.OrderId;
 import com.ecmsp.paymentservice.payment.domain.ClientId;
+import com.ecmsp.paymentservice.payment.domain.Currency;
 import com.ecmsp.paymentservice.payment.adapter.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +33,7 @@ public class PaymentRequestedKafkaConsumer {
                     new OrderId(Long.parseLong(paymentRequestedEvent.orderId())),
                     new ClientId(Long.parseLong(paymentRequestedEvent.clientId())),
                     paymentRequestedEvent.amount(),
+                    Currency.PLN,
                     LocalDateTime.now()
             );
 
