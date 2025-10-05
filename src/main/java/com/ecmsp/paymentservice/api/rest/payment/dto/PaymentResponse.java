@@ -1,6 +1,6 @@
 package com.ecmsp.paymentservice.api.rest.payment.dto;
 
-import com.ecmsp.paymentservice.payment.domain.PaymentStatus;
+import com.ecmsp.paymentservice.payment.domain.PaymentState;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,7 +18,7 @@ public class PaymentResponse {
     private Long userId;
     private BigDecimal amount;
     private String currency;
-    private PaymentStatus status;
+    private PaymentState status;
     private String paymentLink;
     private LocalDateTime expiresAt;
     private LocalDateTime paidAt;

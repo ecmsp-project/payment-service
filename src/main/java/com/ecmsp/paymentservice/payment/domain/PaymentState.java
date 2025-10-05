@@ -1,9 +1,8 @@
 package com.ecmsp.paymentservice.payment.domain;
 
-public enum PaymentStatus {
+public enum PaymentState {
     PENDING,
     PAID,
     EXPIRED,
-    CANCELLED,
-    FAILED
-} 
+    CREATED
+}

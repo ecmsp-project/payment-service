@@ -12,8 +12,8 @@ CREATE TABLE payment_events (
                                 retry_count integer  NULL DEFAULT 0,
                                 processed_at timestamp  NULL,
                                 created_at timestamp  NOT NULL DEFAULT current_timestamp,
-                                CONSTRAINT CHECK_1 CHECK (( event_type IN ( 'PAYMENT_CREATED' , 'PAYMENT_PAID' , 'PAYMENT_EXPIRED' , 'PAYMENT_FAILED' ) )) NOT DEFERRABLE INITIALLY IMMEDIATE,
-                                CONSTRAINT CHECK_2 CHECK (( status IN ( 'PENDING' , 'PROCESSED' , 'FAILED' ) )) NOT DEFERRABLE INITIALLY IMMEDIATE,
+                                CONSTRAINT CHECK_1 CHECK (( event_type IN ( 'PENDING' , 'PAID' , 'EXPIRED' , 'CREATED' ) )) NOT DEFERRABLE INITIALLY IMMEDIATE,
+                                CONSTRAINT CHECK_2 CHECK (( status IN ( 'PENDING' , 'PAID' , 'EXPIRED' , 'CREATED' ) )) NOT DEFERRABLE INITIALLY IMMEDIATE,
                                 CONSTRAINT payment_events_pk PRIMARY KEY (id)
 );
 
@@ -42,7 +42,7 @@ CREATE TABLE payments (
                           updated_at timestamp  NOT NULL DEFAULT current_timestamp,
                           version bigint  NULL DEFAULT 0,
                           CONSTRAINT AK_0 UNIQUE (payment_link) NOT DEFERRABLE  INITIALLY IMMEDIATE,
-                          CONSTRAINT CHECK_0 CHECK (( status IN ( 'PENDING' , 'PAID' , 'EXPIRED' , 'CANCELLED' , 'FAILED' ) )) NOT DEFERRABLE INITIALLY IMMEDIATE,
+                          CONSTRAINT CHECK_0 CHECK (( status IN ( 'PENDING' , 'PAID' , 'EXPIRED' , 'CREATED' ) )) NOT DEFERRABLE INITIALLY IMMEDIATE,
                           CONSTRAINT payments_pk PRIMARY KEY (id)
 );
 

@@ -1,5 +1,6 @@
-package com.ecmsp.paymentservice.payment.domain;
+package com.ecmsp.paymentservice.payment.adapter.db;
 
+import com.ecmsp.paymentservice.payment.domain.PaymentState;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PaymentEvent {
+public class PaymentEventEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,14 +25,14 @@ public class PaymentEvent {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "event_type", nullable = false)
-    private PaymentEventType eventType;
+    private PaymentState eventType;
 
     @Column(name = "event_data", columnDefinition = "TEXT")
     private String eventData;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private EventStatus status = EventStatus.PENDING;
+    private PaymentState status = PaymentState.PENDING;
 
     @Column(name = "retry_count")
     private Integer retryCount = 0;

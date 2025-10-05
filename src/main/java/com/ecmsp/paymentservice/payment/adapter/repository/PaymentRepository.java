@@ -1,7 +1,7 @@
 package com.ecmsp.paymentservice.payment.adapter.repository;
 
-import com.ecmsp.paymentservice.payment.domain.Payment;
-import com.ecmsp.paymentservice.payment.domain.PaymentStatus;
+import com.ecmsp.paymentservice.payment.adapter.db.PaymentEntity;
+import com.ecmsp.paymentservice.payment.domain.PaymentState;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,21 +12,21 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface PaymentRepository extends JpaRepository<Payment, Long> {
+public interface PaymentRepository extends JpaRepository<PaymentEntity, Long> {
 
-    Optional<Payment> findByOrderId(Long orderId);
+    Optional<PaymentEntity> findByOrderId(Long orderId);
     
-    Optional<Payment> findByPaymentLink(String paymentLink);
+    Optional<PaymentEntity> findByPaymentLink(String paymentLink);
     
-    List<Payment> findByUserId(Long userId);
+    List<PaymentEntity> findByUserId(Long userId);
     
-    List<Payment> findByStatus(PaymentStatus status);
+    List<PaymentEntity> findByStatus(PaymentState status);
     
-    @Query("SELECT p FROM Payment p WHERE p.status = :status AND p.expiresAt <= :currentTime")
-    List<Payment> findExpiredPayments(@Param("status") PaymentStatus status, 
-                                     @Param("currentTime") LocalDateTime currentTime);
+    @Query("SELECT p FROM PaymentEntity p WHERE p.status = :status AND p.expiresAt <= :currentTime")
+    List<PaymentEntity> findExpiredPayments(@Param("status") PaymentState status,
+                                            @Param("currentTime") LocalDateTime currentTime);
     
-    @Query("SELECT p FROM Payment p WHERE p.status = :status AND p.expiresAt > :currentTime")
-    List<Payment> findActivePayments(@Param("status") PaymentStatus status, 
-                                    @Param("currentTime") LocalDateTime currentTime);
+    @Query("SELECT p FROM PaymentEntity p WHERE p.status = :status AND p.expiresAt > :currentTime")
+    List<PaymentEntity> findActivePayments(@Param("status") PaymentState status,
+                                           @Param("currentTime") LocalDateTime currentTime);
 } 

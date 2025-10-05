@@ -2,10 +2,9 @@ package com.ecmsp.paymentservice.payment.adapter.service;
 
 import com.ecmsp.paymentservice.api.rest.payment.dto.CreatePaymentRequest;
 import com.ecmsp.paymentservice.api.rest.payment.dto.PaymentResponse;
-import com.ecmsp.paymentservice.payment.domain.Payment;
-import com.ecmsp.paymentservice.payment.domain.PaymentEvent;
-import com.ecmsp.paymentservice.payment.domain.PaymentEventType;
-import com.ecmsp.paymentservice.payment.domain.PaymentStatus;
+import com.ecmsp.paymentservice.payment.adapter.db.PaymentEntity;
+import com.ecmsp.paymentservice.payment.adapter.db.PaymentEventEntity;
+import com.ecmsp.paymentservice.payment.domain.PaymentState;
 import com.ecmsp.paymentservice.payment.adapter.repository.PaymentEventRepository;
 import com.ecmsp.paymentservice.payment.adapter.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
@@ -33,26 +32,26 @@ public class PaymentService {
     public PaymentResponse createPayment(CreatePaymentRequest request) {
         log.info("Creating payment for order: {}", request.getOrderId());
 
-        Optional<Payment> existingPayment = paymentRepository.findByOrderId(request.getOrderId());
+        Optional<PaymentEntity> existingPayment = paymentRepository.findByOrderId(request.getOrderId());
         if (existingPayment.isPresent()) {
             throw new RuntimeException("Payment for order " + request.getOrderId() + " already exists");
         }
 
-        Payment payment = new Payment();
-        payment.setOrderId(request.getOrderId());
-        payment.setUserId(request.getUserId());
-        payment.setAmount(request.getAmount());
-        payment.setCurrency(request.getCurrency());
-        payment.setStatus(PaymentStatus.PENDING);
-        payment.setPaymentLink(generatePaymentLink());
-        payment.setExpiresAt(LocalDateTime.now().plusMinutes(PAYMENT_EXPIRY_MINUTES));
+        PaymentEntity paymentEntity = new PaymentEntity();
+        paymentEntity.setOrderId(request.getOrderId());
+        paymentEntity.setUserId(request.getUserId());
+        paymentEntity.setAmount(request.getAmount());
+        paymentEntity.setCurrency(request.getCurrency());
+        paymentEntity.setStatus(PaymentState.PENDING);
+        paymentEntity.setPaymentLink(generatePaymentLink());
+        paymentEntity.setExpiresAt(LocalDateTime.now().plusMinutes(PAYMENT_EXPIRY_MINUTES));
 
-        Payment savedPayment = paymentRepository.save(payment);
+        PaymentEntity savedPaymentEntity = paymentRepository.save(paymentEntity);
 
-        createPaymentEvent(savedPayment.getId(), PaymentEventType.PAYMENT_CREATED);
+        createPaymentEvent(savedPaymentEntity.getId(), PaymentState.CREATED);
         
-        log.info("Payment created with ID: {}", savedPayment.getId());
-        return mapToPaymentResponse(savedPayment);
+        log.info("Payment created with ID: {}", savedPaymentEntity.getId());
+        return mapToPaymentResponse(savedPaymentEntity);
     }
 
     @Transactional(readOnly = true)
@@ -79,59 +78,59 @@ public class PaymentService {
     public PaymentResponse processPayment(String paymentLink) {
         log.info("Processing payment with link: {}", paymentLink);
         
-        Optional<Payment> paymentOpt = paymentRepository.findByPaymentLink(paymentLink);
+        Optional<PaymentEntity> paymentOpt = paymentRepository.findByPaymentLink(paymentLink);
         if (paymentOpt.isEmpty()) {
             throw new RuntimeException("Payment not found for link: " + paymentLink);
         }
 
-        Payment payment = paymentOpt.get();
+        PaymentEntity paymentEntity = paymentOpt.get();
         
-        if (payment.getStatus() != PaymentStatus.PENDING) {
+        if (paymentEntity.getStatus() != PaymentState.PENDING) {
             throw new RuntimeException("Payment is not in PENDING status");
         }
 
-        if (LocalDateTime.now().isAfter(payment.getExpiresAt())) {
-            payment.setStatus(PaymentStatus.EXPIRED);
-            paymentRepository.save(payment);
-            createPaymentEvent(payment.getId(), PaymentEventType.PAYMENT_EXPIRED);
+        if (LocalDateTime.now().isAfter(paymentEntity.getExpiresAt())) {
+            paymentEntity.setStatus(PaymentState.EXPIRED);
+            paymentRepository.save(paymentEntity);
+            createPaymentEvent(paymentEntity.getId(), PaymentState.EXPIRED);
             throw new RuntimeException("Payment has expired");
         }
 
-        payment.setStatus(PaymentStatus.PAID);
-        payment.setPaidAt(LocalDateTime.now());
-        Payment savedPayment = paymentRepository.save(payment);
+        paymentEntity.setStatus(PaymentState.PAID);
+        paymentEntity.setPaidAt(LocalDateTime.now());
+        PaymentEntity savedPaymentEntity = paymentRepository.save(paymentEntity);
 
-        createPaymentEvent(savedPayment.getId(), PaymentEventType.PAYMENT_PAID);
+        createPaymentEvent(savedPaymentEntity.getId(), PaymentState.PAID);
         
-        log.info("Payment processed successfully for order: {}", savedPayment.getOrderId());
-        return mapToPaymentResponse(savedPayment);
+        log.info("Payment processed successfully for order: {}", savedPaymentEntity.getOrderId());
+        return mapToPaymentResponse(savedPaymentEntity);
     }
 
     @Transactional
     public void expirePayments() {
         log.info("Starting payment expiration check");
         
-        List<Payment> expiredPayments = paymentRepository.findExpiredPayments(
-                PaymentStatus.PENDING, 
+        List<PaymentEntity> expiredPaymentEntities = paymentRepository.findExpiredPayments(
+                PaymentState.PENDING, 
                 LocalDateTime.now()
         );
 
-        for (Payment payment : expiredPayments) {
-            payment.setStatus(PaymentStatus.EXPIRED);
-            paymentRepository.save(payment);
-            createPaymentEvent(payment.getId(), PaymentEventType.PAYMENT_EXPIRED);
-            log.info("Payment expired for order: {}", payment.getOrderId());
+        for (PaymentEntity paymentEntity : expiredPaymentEntities) {
+            paymentEntity.setStatus(PaymentState.EXPIRED);
+            paymentRepository.save(paymentEntity);
+            createPaymentEvent(paymentEntity.getId(), PaymentState.EXPIRED);
+            log.info("Payment expired for order: {}", paymentEntity.getOrderId());
         }
         
-        log.info("Expired {} payments", expiredPayments.size());
+        log.info("Expired {} payments", expiredPaymentEntities.size());
     }
 
     private String generatePaymentLink() {
         return "payment-" + UUID.randomUUID().toString();
     }
 
-    private void createPaymentEvent(Long paymentId, PaymentEventType eventType) {
-        PaymentEvent event = new PaymentEvent();
+    private void createPaymentEvent(Long paymentId, PaymentState eventType) {
+        PaymentEventEntity event = new PaymentEventEntity();
         event.setPaymentId(paymentId);
         event.setEventType(eventType);
         event.setEventData("Payment event: " + eventType);
@@ -139,18 +138,18 @@ public class PaymentService {
         log.debug("Created payment event: {} for payment: {}", eventType, paymentId);
     }
 
-    private PaymentResponse mapToPaymentResponse(Payment payment) {
+    private PaymentResponse mapToPaymentResponse(PaymentEntity paymentEntity) {
         return new PaymentResponse(
-                payment.getId(),
-                payment.getOrderId(),
-                payment.getUserId(),
-                payment.getAmount(),
-                payment.getCurrency(),
-                payment.getStatus(),
-                payment.getPaymentLink(),
-                payment.getExpiresAt(),
-                payment.getPaidAt(),
-                payment.getCreatedAt()
+                paymentEntity.getId(),
+                paymentEntity.getOrderId(),
+                paymentEntity.getUserId(),
+                paymentEntity.getAmount(),
+                paymentEntity.getCurrency(),
+                paymentEntity.getStatus(),
+                paymentEntity.getPaymentLink(),
+                paymentEntity.getExpiresAt(),
+                paymentEntity.getPaidAt(),
+                paymentEntity.getCreatedAt()
         );
     }
 } 
