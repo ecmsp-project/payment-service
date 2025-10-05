@@ -1,6 +1,8 @@
 package com.ecmsp.paymentservice.api.kafka;
 
-import com.ecmsp.paymentservice.api.rest.payment.dto.CreatePaymentRequest;
+import com.ecmsp.paymentservice.payment.domain.PaymentToCreate;
+import com.ecmsp.paymentservice.payment.domain.OrderId;
+import com.ecmsp.paymentservice.payment.domain.ClientId;
 import com.ecmsp.paymentservice.payment.adapter.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,17 +28,15 @@ public class PaymentRequestedKafkaConsumer {
         log.info("Received payment request for order: {}", paymentRequestedEvent.orderId());
         
         try {
-            // Convert Kafka event to CreatePaymentRequest
-            CreatePaymentRequest createPaymentRequest = new CreatePaymentRequest();
-            createPaymentRequest.setOrderId(Long.parseLong(paymentRequestedEvent.orderId()));
-            createPaymentRequest.setUserId(Long.parseLong(paymentRequestedEvent.clientId()));
-            createPaymentRequest.setAmount(paymentRequestedEvent.amount());
-            createPaymentRequest.setCurrency("PLN");
-            
-            // Create payment
-            var paymentResponse = paymentService.createPayment(createPaymentRequest);
-            
-            // Publish success event
+            PaymentToCreate paymentToCreate = new PaymentToCreate(
+                    new OrderId(Long.parseLong(paymentRequestedEvent.orderId())),
+                    new ClientId(Long.parseLong(paymentRequestedEvent.clientId())),
+                    paymentRequestedEvent.amount(),
+                    LocalDateTime.now()
+            );
+
+            var paymentResponse = paymentService.createPaymentFromDomain(paymentToCreate);
+
             PaymentProcessedKafkaEventSucceeded successEvent = new PaymentProcessedKafkaEventSucceeded(
                     paymentRequestedEvent.orderId(),
                     paymentResponse.getId().toString(),

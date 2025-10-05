@@ -5,6 +5,7 @@ import com.ecmsp.paymentservice.api.rest.payment.dto.PaymentResponse;
 import com.ecmsp.paymentservice.payment.adapter.db.PaymentEntity;
 import com.ecmsp.paymentservice.payment.adapter.db.PaymentEventEntity;
 import com.ecmsp.paymentservice.payment.domain.PaymentState;
+import com.ecmsp.paymentservice.payment.domain.PaymentToCreate;
 import com.ecmsp.paymentservice.payment.adapter.repository.PaymentEventRepository;
 import com.ecmsp.paymentservice.payment.adapter.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +43,32 @@ public class PaymentService {
         paymentEntity.setUserId(request.getUserId());
         paymentEntity.setAmount(request.getAmount());
         paymentEntity.setCurrency(request.getCurrency());
+        paymentEntity.setStatus(PaymentState.PENDING);
+        paymentEntity.setPaymentLink(generatePaymentLink());
+        paymentEntity.setExpiresAt(LocalDateTime.now().plusMinutes(PAYMENT_EXPIRY_MINUTES));
+
+        PaymentEntity savedPaymentEntity = paymentRepository.save(paymentEntity);
+
+        createPaymentEvent(savedPaymentEntity.getId(), PaymentState.CREATED);
+        
+        log.info("Payment created with ID: {}", savedPaymentEntity.getId());
+        return mapToPaymentResponse(savedPaymentEntity);
+    }
+
+    @Transactional
+    public PaymentResponse createPaymentFromDomain(PaymentToCreate paymentToCreate) {
+        log.info("Creating payment for order: {}", paymentToCreate.orderId().value());
+
+        Optional<PaymentEntity> existingPayment = paymentRepository.findByOrderId(paymentToCreate.orderId().value());
+        if (existingPayment.isPresent()) {
+            throw new RuntimeException("Payment for order " + paymentToCreate.orderId().value() + " already exists");
+        }
+
+        PaymentEntity paymentEntity = new PaymentEntity();
+        paymentEntity.setOrderId(paymentToCreate.orderId().value());
+        paymentEntity.setUserId(paymentToCreate.clientId().value());
+        paymentEntity.setAmount(paymentToCreate.amount());
+        paymentEntity.setCurrency("PLN");
         paymentEntity.setStatus(PaymentState.PENDING);
         paymentEntity.setPaymentLink(generatePaymentLink());
         paymentEntity.setExpiresAt(LocalDateTime.now().plusMinutes(PAYMENT_EXPIRY_MINUTES));
