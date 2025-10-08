@@ -1,6 +1,6 @@
 package com.ecmsp.paymentservice.payment.domain;
 
-public enum PaymentState {
+public enum PaymentStatus {
     PENDING,
     PAID,
     EXPIRED,

@@ -11,14 +11,10 @@ public record PaymentToCreate(
         Currency currency,
         LocalDateTime requestedAt
 ) {
+    private static final BigDecimal MINIMAL_TOTAL_VALUE = new BigDecimal("0.01");
+
     public PaymentToCreate {
-        Objects.requireNonNull(orderId, "Order ID cannot be null");
-        Objects.requireNonNull(clientId, "Client ID cannot be null");
-        Objects.requireNonNull(amount, "Amount cannot be null");
-        Objects.requireNonNull(currency, "Currency cannot be null");
-        Objects.requireNonNull(requestedAt, "Requested at cannot be null");
-        
-        if (amount.compareTo(BigDecimal.valueOf(0.01)) < 0) {
+        if (amount.compareTo(MINIMAL_TOTAL_VALUE) < 0) {
             throw new IllegalArgumentException("Amount must be at least 0.01");
         }
     }

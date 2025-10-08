@@ -90,27 +90,47 @@ docker run -d \
 
 ```
 src/main/java/com/ecmsp/paymentservice/
-├── controller/
-│   └── PaymentController.java
-├── dto/
-│   ├── CreatePaymentRequest.java
-│   └── PaymentResponse.java
-├── entity/
-│   ├── Payment.java
-│   ├── PaymentEvent.java
-│   ├── PaymentStatus.java
-│   ├── PaymentEventType.java
-│   └── EventStatus.java
-├── job/
-│   └── PaymentExpirationJob.java
-├── repository/
-│   ├── PaymentRepository.java
-│   └── PaymentEventRepository.java
-├── service/
-│   └── PaymentService.java
-└── config/
-    ├── OpenApiConfig.java
-    └── QuartzConfig.java
+├── api/
+│   ├── kafka/
+│   │   ├── KafkaPaymentEventPublisher.java
+│   │   ├── PaymentEventPublisher.java
+│   │   ├── PaymentProcessedKafkaEventFailed.java
+│   │   ├── PaymentProcessedKafkaEventSucceeded.java
+│   │   ├── PaymentRequestedKafkaConsumer.java
+│   │   └── PaymentRequestedKafkaEvent.java
+│   └── rest/
+│       ├── health/
+│       │   └── HealthController.java
+│       └── payment/
+│           ├── dto/
+│           │   ├── CreatePaymentRequest.java
+│           │   └── PaymentResponse.java
+│           └── PaymentController.java
+├── aplication/
+│   └── config/
+│       └── KafkaConfiguration.java
+├── payment/
+│   ├── adapter/
+│   │   ├── db/
+│   │   │   ├── PaymentEntity.java
+│   │   │   └── PaymentEventEntity.java
+│   │   ├── job/
+│   │   │   └── PaymentExpirationJob.java
+│   │   ├── repository/
+│   │   │   ├── PaymentEventRepository.java
+│   │   │   └── PaymentRepository.java
+│   │   └── service/
+│   │       └── PaymentService.java
+│   ├── config/
+│   │   ├── OpenApiConfiguration.java
+│   │   └── QuartzConfiguration.java
+│   └── domain/
+│       ├── ClientId.java
+│       ├── Currency.java
+│       ├── OrderId.java
+│       ├── PaymentState.java
+│       └── PaymentToCreate.java
+└── PaymentServiceApplication.java
 ```
 
 ## Database Schema

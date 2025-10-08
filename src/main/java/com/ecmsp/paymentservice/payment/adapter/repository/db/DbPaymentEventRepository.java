@@ -1,0 +1,18 @@
+package com.ecmsp.paymentservice.payment.adapter.repository.db;
+
+import com.ecmsp.paymentservice.payment.domain.PaymentStatus;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.UUID;
+
+@Repository
+public interface DbPaymentEventRepository extends JpaRepository<PaymentEventEntity, UUID> {
+
+    List<PaymentEventEntity> findByStatus(PaymentStatus status);
+    
+    List<PaymentEventEntity> findByPaymentId(UUID paymentId);
+    
+    List<PaymentEventEntity> findByStatusAndRetryCountLessThan(PaymentStatus status, Integer maxRetryCount);
+} 

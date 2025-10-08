@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -30,8 +31,8 @@ public class PaymentRequestedKafkaConsumer {
         
         try {
             PaymentToCreate paymentToCreate = new PaymentToCreate(
-                    new OrderId(Long.parseLong(paymentRequestedEvent.orderId())),
-                    new ClientId(Long.parseLong(paymentRequestedEvent.clientId())),
+                    new OrderId(UUID.fromString(paymentRequestedEvent.orderId())),
+                    new ClientId(UUID.fromString(paymentRequestedEvent.clientId())),
                     paymentRequestedEvent.amount(),
                     Currency.PLN,
                     LocalDateTime.now()

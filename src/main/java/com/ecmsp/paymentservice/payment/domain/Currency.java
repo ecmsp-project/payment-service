@@ -1,8 +1,5 @@
 package com.ecmsp.paymentservice.payment.domain;
 
-import lombok.Getter;
-
-@Getter
 public enum Currency {
     PLN("PLN"),
     USD("USD"),
@@ -17,6 +14,10 @@ public enum Currency {
 
     @Override
     public String toString() {
+        return code;
+    }
+
+    public String getCode() {
         return code;
     }
 }

@@ -5,13 +5,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreatePaymentRequest {
-    private Long orderId;
-    private Long userId;
+    private UUID orderId;
+    private UUID userId;
     private BigDecimal amount;
     private String currency = "PLN";
 } 
