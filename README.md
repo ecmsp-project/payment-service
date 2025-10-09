@@ -42,14 +42,11 @@ Payment Service is one of the microservices in the Scalable E-Commerce Platform 
 The service requires PostgreSQL. Configuration in `application.properties`:
 
 ```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/payment_service
+spring.datasource.url=jdbc:postgresql://localhost:9200/payment-service-db
 spring.datasource.username=postgres
 spring.datasource.password=postgres
 ```
 
-### Port
-
-The service runs on port `8081`.
 
 ### Quartz Scheduler
 
@@ -72,7 +69,7 @@ docker run -d \
   -e POSTGRES_DB=payment_service \
   -e POSTGRES_USER=postgres \
   -e POSTGRES_PASSWORD=postgres \
-  -p 5432:5432 \
+  -p 9200:5432 \
   postgres:15
 ```
 
