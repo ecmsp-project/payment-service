@@ -1,5 +1,7 @@
-package com.ecmsp.paymentservice.entity;
+package com.ecmsp.paymentservice.payment.adapter.repository.db;
 
+import com.ecmsp.paymentservice.payment.domain.Currency;
+import com.ecmsp.paymentservice.payment.domain.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,29 +11,31 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "payments")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Payment {
+public class PaymentEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(name = "order_id", nullable = false)
-    private Long orderId;
+    private UUID orderId;
 
     @Column(name = "user_id", nullable = false)
-    private Long userId;
+    private UUID userId;
 
     @Column(name = "amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "currency", nullable = false, length = 3)
-    private String currency = "PLN";
+    private Currency currency = Currency.PLN;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -57,4 +61,4 @@ public class Payment {
     @Version
     @Column(name = "version")
     private Long version;
-} 
+}

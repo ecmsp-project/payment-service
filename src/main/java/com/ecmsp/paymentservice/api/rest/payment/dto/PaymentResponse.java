@@ -1,21 +1,21 @@
-package com.ecmsp.paymentservice.dto;
+package com.ecmsp.paymentservice.api.rest.payment.dto;
 
-import com.ecmsp.paymentservice.entity.PaymentStatus;
+import com.ecmsp.paymentservice.payment.domain.PaymentStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class PaymentResponse {
-
-    private Long id;
-    private Long orderId;
-    private Long userId;
+    private UUID id;
+    private UUID orderId;
+    private UUID userId;
     private BigDecimal amount;
     private String currency;
     private PaymentStatus status;

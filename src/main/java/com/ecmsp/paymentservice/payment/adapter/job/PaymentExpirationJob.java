@@ -1,6 +1,6 @@
-package com.ecmsp.paymentservice.job;
+package com.ecmsp.paymentservice.payment.adapter.job;
 
-import com.ecmsp.paymentservice.service.PaymentService;
+import com.ecmsp.paymentservice.payment.adapter.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.Job;

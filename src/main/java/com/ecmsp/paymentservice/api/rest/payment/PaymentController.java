@@ -1,8 +1,8 @@
-package com.ecmsp.paymentservice.controller;
+package com.ecmsp.paymentservice.api.rest.payment;
 
-import com.ecmsp.paymentservice.dto.CreatePaymentRequest;
-import com.ecmsp.paymentservice.dto.PaymentResponse;
-import com.ecmsp.paymentservice.service.PaymentService;
+import com.ecmsp.paymentservice.api.rest.payment.dto.CreatePaymentRequest;
+import com.ecmsp.paymentservice.api.rest.payment.dto.PaymentResponse;
+import com.ecmsp.paymentservice.payment.adapter.service.PaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/payments")
@@ -28,7 +29,7 @@ public class PaymentController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PaymentResponse> getPaymentById(@PathVariable Long id) {
+    public ResponseEntity<PaymentResponse> getPaymentById(@PathVariable UUID id) {
         log.info("Received request to get payment by ID: {}", id);
         return paymentService.getPaymentById(id)
                 .map(ResponseEntity::ok)
@@ -36,7 +37,7 @@ public class PaymentController {
     }
 
     @GetMapping("/order/{orderId}")
-    public ResponseEntity<PaymentResponse> getPaymentByOrderId(@PathVariable Long orderId) {
+    public ResponseEntity<PaymentResponse> getPaymentByOrderId(@PathVariable UUID orderId) {
         log.info("Received request to get payment by order ID: {}", orderId);
         return paymentService.getPaymentByOrderId(orderId)
                 .map(ResponseEntity::ok)
@@ -44,7 +45,7 @@ public class PaymentController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<PaymentResponse>> getPaymentsByUserId(@PathVariable Long userId) {
+    public ResponseEntity<List<PaymentResponse>> getPaymentsByUserId(@PathVariable UUID userId) {
         log.info("Received request to get payments by user ID: {}", userId);
         List<PaymentResponse> payments = paymentService.getPaymentsByUserId(userId);
         return ResponseEntity.ok(payments);
