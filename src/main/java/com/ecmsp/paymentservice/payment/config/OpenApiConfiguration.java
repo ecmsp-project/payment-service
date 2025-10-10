@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 public class OpenApiConfiguration {
 
     @Bean
-    public OpenAPI paymentServiceOpenAPI() {
+    public OpenAPI paymentFacadeOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
                         .title("Payment Service API")

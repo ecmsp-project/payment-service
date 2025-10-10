@@ -30,8 +30,8 @@ public class PaymentEntity {
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
-    @Column(name = "amount", nullable = false, precision = 10, scale = 2)
-    private BigDecimal amount;
+    @Column(name = "order_total", nullable = false, precision = 10, scale = 2)
+    private BigDecimal orderTotal;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "currency", nullable = false, length = 3)

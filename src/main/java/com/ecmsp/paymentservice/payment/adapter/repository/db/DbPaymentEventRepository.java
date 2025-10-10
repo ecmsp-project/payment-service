@@ -7,6 +7,8 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.UUID;
 
+
+//TODO CHANGE NAME - how it should be used - it's for outbox pattern table
 @Repository
 public interface DbPaymentEventRepository extends JpaRepository<PaymentEventEntity, UUID> {
 

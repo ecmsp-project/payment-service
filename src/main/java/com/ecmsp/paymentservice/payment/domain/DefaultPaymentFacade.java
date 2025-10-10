@@ -1,22 +1,21 @@
-package com.ecmsp.paymentservice.payment.adapter.service;
+package com.ecmsp.paymentservice.payment.domain;
 
-import com.ecmsp.paymentservice.api.rest.payment.dto.CreatePaymentRequest;
-import com.ecmsp.paymentservice.api.rest.payment.dto.PaymentResponse;
+import com.ecmsp.paymentservice.api.rest.payment.dto.CreatePaymentDto;
+import com.ecmsp.paymentservice.payment.adapter.publisher.kafka.PaymentEventPublisher;
+import com.ecmsp.paymentservice.payment.adapter.publisher.kafka.KafkaPaymentProcessedFailedEvent;
+import com.ecmsp.paymentservice.payment.adapter.publisher.kafka.KafkaPaymentProcessedSucceededEvent;
 import com.ecmsp.paymentservice.payment.adapter.repository.db.PaymentEntity;
 import com.ecmsp.paymentservice.payment.adapter.repository.db.PaymentEventEntity;
-import com.ecmsp.paymentservice.payment.domain.PaymentStatus;
-import com.ecmsp.paymentservice.payment.domain.PaymentToCreate;
-import com.ecmsp.paymentservice.payment.domain.OrderId;
-import com.ecmsp.paymentservice.payment.domain.ClientId;
-import com.ecmsp.paymentservice.payment.domain.Currency;
 import com.ecmsp.paymentservice.payment.adapter.repository.db.DbPaymentEventRepository;
 import com.ecmsp.paymentservice.payment.adapter.repository.db.DbPaymentEntityRepository;
+import com.ecmsp.paymentservice.payment.adapter.repository.db.PaymentMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,31 +24,63 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PaymentService {
+public class DefaultPaymentFacade implements PaymentFacade {
 
     private final DbPaymentEntityRepository paymentRepository;
     private final DbPaymentEventRepository paymentEventRepository;
+    private final PaymentEventPublisher paymentEventPublisher;
+    private final PaymentMapper paymentMapper;
 
     private static final int PAYMENT_EXPIRY_MINUTES = 10;
 
+    @Override
     @Transactional
-    public PaymentResponse createPayment(CreatePaymentRequest request) {
+    public Payment createPayment(CreatePaymentDto request) {
         PaymentToCreate paymentToCreate = new PaymentToCreate(
-                new OrderId(request.getOrderId()),
-                new ClientId(request.getUserId()),
-                request.getAmount(),
+                new OrderId(request.orderId()),
+                new UserId(request.userId()),
+                request.orderTotal(),
                 Currency.PLN,
                 LocalDateTime.now()
         );
         return createPaymentInternal(paymentToCreate);
     }
 
+    @Override
     @Transactional
-    public PaymentResponse createPaymentFromDomain(PaymentToCreate paymentToCreate) {
-        return createPaymentInternal(paymentToCreate);
+    public Payment processPaymentRequest(PaymentToCreate paymentToCreate) {
+        log.info("Processing payment request for order: {}", paymentToCreate.orderId().value());
+
+        try {
+            Payment payment = createPaymentInternal(paymentToCreate);
+
+            paymentEventPublisher.publishPaymentProcessedSuccess(
+                    new KafkaPaymentProcessedSucceededEvent(
+                            paymentToCreate.orderId().value().toString(),
+                            payment.id().toString(),
+                            DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now())
+                    )
+            );
+
+            log.info("Payment request processed successfully for order: {}", paymentToCreate.orderId().value());
+            return payment;
+
+        } catch (Exception e) {
+            log.error("Failed to process payment request for order: {}", paymentToCreate.orderId().value(), e);
+
+            paymentEventPublisher.publishPaymentProcessedFailure(
+                    new KafkaPaymentProcessedFailedEvent(
+                            paymentToCreate.orderId().value().toString(),
+                            null,
+                            DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now())
+                    )
+            );
+
+            throw e;
+        }
     }
 
-    private PaymentResponse createPaymentInternal(PaymentToCreate paymentToCreate) {
+    private Payment createPaymentInternal(PaymentToCreate paymentToCreate) {
         log.info("Creating payment for order: {}", paymentToCreate.orderId().value());
 
         Optional<PaymentEntity> existingPayment = paymentRepository.findByOrderId(paymentToCreate.orderId().value());
@@ -59,8 +90,8 @@ public class PaymentService {
 
         PaymentEntity paymentEntity = new PaymentEntity();
         paymentEntity.setOrderId(paymentToCreate.orderId().value());
-        paymentEntity.setUserId(paymentToCreate.clientId().value());
-        paymentEntity.setAmount(paymentToCreate.amount());
+        paymentEntity.setUserId(paymentToCreate.userId().value());
+        paymentEntity.setOrderTotal(paymentToCreate.orderTotal());
         paymentEntity.setCurrency(paymentToCreate.currency());
         paymentEntity.setStatus(PaymentStatus.PENDING);
         paymentEntity.setPaymentLink(generatePaymentLink());
@@ -69,33 +100,37 @@ public class PaymentService {
         PaymentEntity savedPaymentEntity = paymentRepository.save(paymentEntity);
 
         createPaymentEvent(savedPaymentEntity.getId(), PaymentStatus.CREATED);
-        
+
         log.info("Payment created with ID: {}", savedPaymentEntity.getId());
-        return mapToPaymentResponse(savedPaymentEntity);
+        return paymentMapper.mapToPaymentResponse(savedPaymentEntity);
     }
 
+    @Override
     @Transactional(readOnly = true)
-    public Optional<PaymentResponse> getPaymentById(UUID id) {
+    public Optional<Payment> getPaymentById(UUID id) {
         return paymentRepository.findById(id)
-                .map(this::mapToPaymentResponse);
+                .map(paymentMapper::mapToPaymentResponse);
     }
 
+    @Override
     @Transactional(readOnly = true)
-    public Optional<PaymentResponse> getPaymentByOrderId(UUID orderId) {
+    public Optional<Payment> getPaymentByOrderId(UUID orderId) {
         return paymentRepository.findByOrderId(orderId)
-                .map(this::mapToPaymentResponse);
+                .map(paymentMapper::mapToPaymentResponse);
     }
 
+    @Override
     @Transactional(readOnly = true)
-    public List<PaymentResponse> getPaymentsByUserId(UUID userId) {
+    public List<Payment> getPaymentsByUserId(UUID userId) {
         return paymentRepository.findByUserId(userId)
                 .stream()
-                .map(this::mapToPaymentResponse)
+                .map(paymentMapper::mapToPaymentResponse)
                 .collect(Collectors.toList());
     }
 
+    @Override
     @Transactional
-    public PaymentResponse processPayment(String paymentLink) {
+    public Payment processPayment(String paymentLink) {
         log.info("Processing payment with link: {}", paymentLink);
         
         Optional<PaymentEntity> paymentOpt = paymentRepository.findByPaymentLink(paymentLink);
@@ -121,11 +156,12 @@ public class PaymentService {
         PaymentEntity savedPaymentEntity = paymentRepository.save(paymentEntity);
 
         createPaymentEvent(savedPaymentEntity.getId(), PaymentStatus.PAID);
-        
+
         log.info("Payment processed successfully for order: {}", savedPaymentEntity.getOrderId());
-        return mapToPaymentResponse(savedPaymentEntity);
+        return paymentMapper.mapToPaymentResponse(savedPaymentEntity);
     }
 
+    @Override
     @Transactional
     public void expirePayments() {
         log.info("Starting payment expiration check");
@@ -156,20 +192,5 @@ public class PaymentService {
         event.setEventData("Payment event: " + eventType);
         paymentEventRepository.save(event);
         log.debug("Created payment event: {} for payment: {}", eventType, paymentId);
-    }
-
-    private PaymentResponse mapToPaymentResponse(PaymentEntity paymentEntity) {
-        return new PaymentResponse(
-                paymentEntity.getId(),
-                paymentEntity.getOrderId(),
-                paymentEntity.getUserId(),
-                paymentEntity.getAmount(),
-                paymentEntity.getCurrency().getCode(),
-                paymentEntity.getStatus(),
-                paymentEntity.getPaymentLink(),
-                paymentEntity.getExpiresAt(),
-                paymentEntity.getPaidAt(),
-                paymentEntity.getCreatedAt()
-        );
     }
 } 

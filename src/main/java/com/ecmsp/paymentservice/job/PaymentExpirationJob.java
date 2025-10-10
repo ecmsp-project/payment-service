@@ -1,6 +1,6 @@
-package com.ecmsp.paymentservice.payment.adapter.job;
+package com.ecmsp.paymentservice.job;
 
-import com.ecmsp.paymentservice.payment.adapter.service.PaymentService;
+import com.ecmsp.paymentservice.payment.domain.PaymentFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.Job;
@@ -13,13 +13,13 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class PaymentExpirationJob implements Job {
 
-    private final PaymentService paymentService;
+    private final PaymentFacade paymentFacade;
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         log.info("Starting scheduled payment expiration job");
         try {
-            paymentService.expirePayments();
+            paymentFacade.expirePayments();
             log.info("Payment expiration job completed successfully");
         } catch (Exception e) {
             log.error("Error during payment expiration job", e);
