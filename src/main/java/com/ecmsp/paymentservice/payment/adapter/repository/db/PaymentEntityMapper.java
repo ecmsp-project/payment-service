@@ -1,15 +1,15 @@
 package com.ecmsp.paymentservice.payment.adapter.repository.db;
 
 import com.ecmsp.paymentservice.payment.domain.*;
-import org.springframework.stereotype.Component;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
 
-@Component
-public class PaymentEntityMapper {
+class PaymentEntityMapper {
 
-    public Payment mapToPayment(PaymentEntity paymentEntity) {
+
+
+    public Payment toPayment(PaymentEntity paymentEntity) {
         return new Payment(
                 new PaymentId(paymentEntity.getId()),
                 new OrderId(paymentEntity.getOrderId()),
@@ -20,12 +20,12 @@ public class PaymentEntityMapper {
                 paymentEntity.getPaymentLink(),
                 paymentEntity.getExpiresAt(),
                 paymentEntity.getPaidAt(),
-                paymentEntity.getCreatedAt()
+                paymentEntity.getCreatedAt(),
+                paymentEntity.getUpdatedAt()
         );
     }
 
-
-    public PaymentEntity mapToPaymentEntity(Payment payment, Clock clock) {
+    public PaymentEntity toPaymentEntity(Payment payment) {
         return new PaymentEntity(
                 payment.id().value(),
                 payment.orderId().value(),
@@ -37,10 +37,8 @@ public class PaymentEntityMapper {
                 payment.expiresAt(),
                 payment.paidAt(),
                 payment.createdAt(),
-                LocalDateTime.now(clock),
+                payment.updatedAt(),
                 null  // version - JPA will set to 0 on first persist
         );
     }
-
-
 }

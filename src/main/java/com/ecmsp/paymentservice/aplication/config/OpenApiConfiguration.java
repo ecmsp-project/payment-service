@@ -1,4 +1,4 @@
-package com.ecmsp.paymentservice.payment.config;
+package com.ecmsp.paymentservice.aplication.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class OpenApiConfiguration {
+class OpenApiConfiguration {
 
     @Bean
     public OpenAPI paymentFacadeOpenAPI() {

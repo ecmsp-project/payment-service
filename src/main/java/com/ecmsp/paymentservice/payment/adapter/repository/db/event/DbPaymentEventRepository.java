@@ -1,4 +1,4 @@
-package com.ecmsp.paymentservice.payment.adapter.repository.db;
+package com.ecmsp.paymentservice.payment.adapter.repository.db.event;
 
 import com.ecmsp.paymentservice.payment.domain.PaymentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;

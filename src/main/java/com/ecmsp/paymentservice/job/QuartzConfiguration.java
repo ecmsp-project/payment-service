@@ -1,12 +1,11 @@
-package com.ecmsp.paymentservice.payment.config;
+package com.ecmsp.paymentservice.job;
 
-import com.ecmsp.paymentservice.job.PaymentExpirationJob;
 import org.quartz.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class QuartzConfiguration {
+class QuartzConfiguration {
 
     @Bean
     public JobDetail paymentExpirationJobDetail() {

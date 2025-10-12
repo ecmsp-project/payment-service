@@ -1,24 +1,22 @@
 package com.ecmsp.paymentservice.payment.domain;
 
-import com.ecmsp.paymentservice.api.rest.payment.dto.CreatePaymentDto;
-
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 public interface PaymentFacade {
 
-    Payment createPayment(PaymentToCreate paymentToCreate);
+    //TODO for now correlationId would be only for kafka communication to trace through logs but should be added to gRPC too to see whole path -> or should I remove this feature
 
-    Payment processPaymentRequest(PaymentToCreate paymentToCreate);
-
-    Optional<Payment> getPaymentById(UUID id);
-
-    Optional<Payment> getPaymentByOrderId(UUID orderId);
-
-    List<Payment> getPaymentsByUserId(UUID userId);
-
+    Payment createPayment(PaymentToCreate paymentToCreate, Context context);
     Payment processPayment(String paymentLink);
 
-    void expirePayments();
+    Optional<Payment> getPaymentById(PaymentId paymentId);
+    Optional<Payment> getPaymentByOrderId(OrderId orderId);
+    List<Payment> getPaymentsByUserId(UserId userId);
+
+
+
+
+
+
 }

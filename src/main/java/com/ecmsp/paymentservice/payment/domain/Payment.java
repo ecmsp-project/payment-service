@@ -13,5 +13,6 @@ public record Payment(
     String paymentLink,
     LocalDateTime expiresAt,
     LocalDateTime paidAt,
-    LocalDateTime createdAt
+    LocalDateTime createdAt,
+    LocalDateTime updatedAt
 ) {} 
