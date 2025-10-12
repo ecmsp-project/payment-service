@@ -25,7 +25,7 @@ public class PaymentExpirationService {
 
         List<Payment> expiredPayments = paymentRepository.findExpiredPayments(
                 PaymentStatus.PENDING,
-                LocalDateTime.now()
+                LocalDateTime.now(clock)
         );
 
         for (Payment payment : expiredPayments) {
