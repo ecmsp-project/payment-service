@@ -37,8 +37,7 @@ class PaymentEntityMapper {
                 payment.expiresAt(),
                 payment.paidAt(),
                 payment.createdAt(),
-                payment.updatedAt(),
-                null  // version - JPA will set to 0 on first persist
+                payment.updatedAt()
         );
     }
 }

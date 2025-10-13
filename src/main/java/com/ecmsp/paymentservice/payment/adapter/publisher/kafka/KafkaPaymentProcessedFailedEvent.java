@@ -1,6 +1,6 @@
 package com.ecmsp.paymentservice.payment.adapter.publisher.kafka;
 
-record KafkaPaymentProcessedFailedEvent(
+public record KafkaPaymentProcessedFailedEvent(
         String orderId,
         String paymentId,
         String processedAt

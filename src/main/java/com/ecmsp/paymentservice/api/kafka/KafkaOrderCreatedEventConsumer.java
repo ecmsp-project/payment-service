@@ -28,15 +28,17 @@ class KafkaOrderCreatedEventConsumer {
         log.info("Received payment request for order: {}", createdOrderEvent.orderId());
 
         try {
-            MDC.put("correlationId", correlationId.toString());
-            log.info("Processing orderCreated event - CorrelationID: {}", correlationId);
+            // Handle null correlation ID
+            String effectiveCorrelationId = correlationId != null ? correlationId : UUID.randomUUID().toString();
+            MDC.put("correlationId", effectiveCorrelationId);
+            log.info("Processing orderCreated event - CorrelationID: {}", effectiveCorrelationId);
 
             PaymentToCreate paymentToCreate = KafkaOrderCreatedEvent.toPayment(createdOrderEvent);
-            Context context = new Context(new CorrelationId(UUID.fromString(correlationId)));
+            Context context = new Context(new CorrelationId(UUID.fromString(effectiveCorrelationId)));
             paymentFacade.createPayment(paymentToCreate, context);
 
             MDC.clear();
-            log.info("Finished processing orderCreated event - CorrelationID: {}", correlationId);
+            log.info("Finished processing orderCreated event - CorrelationID: {}", effectiveCorrelationId);
 
         } catch (Exception e) {
             log.error("Failed to consume payment request for order: {}", createdOrderEvent.orderId(), e);

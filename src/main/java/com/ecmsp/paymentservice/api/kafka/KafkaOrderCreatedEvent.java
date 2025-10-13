@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-record KafkaOrderCreatedEvent(
+public record KafkaOrderCreatedEvent(
         String orderId,
         String clientId,
         BigDecimal orderTotal,
