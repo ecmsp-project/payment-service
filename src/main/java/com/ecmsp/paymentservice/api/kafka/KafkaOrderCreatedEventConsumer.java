@@ -4,6 +4,8 @@ import com.ecmsp.paymentservice.payment.domain.Context;
 import com.ecmsp.paymentservice.payment.domain.CorrelationId;
 import com.ecmsp.paymentservice.payment.domain.PaymentFacade;
 import com.ecmsp.paymentservice.payment.domain.PaymentToCreate;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -18,13 +20,16 @@ import java.util.UUID;
 class KafkaOrderCreatedEventConsumer {
 
     private final PaymentFacade paymentFacade;
+    private final ObjectMapper objectMapper;
 
-    public KafkaOrderCreatedEventConsumer(PaymentFacade paymentFacade) {
+    public KafkaOrderCreatedEventConsumer(PaymentFacade paymentFacade, ObjectMapper objectMapper) {
         this.paymentFacade = paymentFacade;
+        this.objectMapper = objectMapper;
     }
 
     @KafkaListener(topics = "${kafka.topic.order-created}")
-    public void consume(@Payload KafkaOrderCreatedEvent createdOrderEvent, @Header(value = "X-Correlation-Id", required = false) String correlationId) {
+    public void consume(@Payload String createdOrderEventJson, @Header(value = "X-Correlation-Id", required = false) String correlationId) throws JsonProcessingException {
+        KafkaOrderCreatedEvent createdOrderEvent = objectMapper.readValue(createdOrderEventJson, KafkaOrderCreatedEvent.class);
         log.info("Received payment request for order: {}", createdOrderEvent.orderId());
 
         try {
