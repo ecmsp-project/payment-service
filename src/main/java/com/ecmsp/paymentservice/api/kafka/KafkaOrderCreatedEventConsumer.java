@@ -29,7 +29,11 @@ class KafkaOrderCreatedEventConsumer {
 
     @KafkaListener(topics = "${kafka.topic.order-created}")
     public void consume(@Payload String createdOrderEventJson, @Header(value = "X-Correlation-Id", required = false) String correlationId) throws JsonProcessingException {
+        log.info("Raw message received: [{}]", createdOrderEventJson);
+        log.info("Message length: {}", createdOrderEventJson != null ? createdOrderEventJson.length() : "null");
+
         KafkaOrderCreatedEvent createdOrderEvent = objectMapper.readValue(createdOrderEventJson, KafkaOrderCreatedEvent.class);
+
         log.info("Received payment request for order: {}", createdOrderEvent.orderId());
 
         try {

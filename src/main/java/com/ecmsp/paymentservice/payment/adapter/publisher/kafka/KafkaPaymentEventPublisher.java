@@ -29,6 +29,10 @@ class KafkaPaymentEventPublisher implements PaymentEventPublisher {
         this.failureKafkaTemplate = failureKafkaTemplate;
     }
 
+
+
+    //TODO: Add String serialization for payment published events and for order updated status in order service
+    // check is it work with correlationId provided by kafka message header
     @Override
     public void publish(PaymentEvent paymentEvent) {
         switch(paymentEvent){
