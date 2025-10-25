@@ -79,7 +79,7 @@ class DbPaymentRepository implements PaymentRepository {
 
     @Override
     public void update(Payment payment) {
-        if(paymentEntityRepository.existsById(payment.id().value())) {
+        if(!paymentEntityRepository.existsById(payment.id().value())) {
             throw new RuntimeException("Payment not found");
         }
         paymentEntityRepository.save(paymentEntityMapper.toPaymentEntity(payment));

@@ -37,7 +37,7 @@ class KafkaOrderCreatedEventConsumer {
         log.info("Received payment request for order: {}", createdOrderEvent.orderId());
 
         try {
-            // Handle null correlation ID
+
             String effectiveCorrelationId = correlationId != null ? correlationId : UUID.randomUUID().toString();
             MDC.put("correlationId", effectiveCorrelationId);
             log.info("Processing orderCreated event - CorrelationID: {}", effectiveCorrelationId);

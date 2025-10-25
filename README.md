@@ -1,173 +1,35 @@
-# Payment Service
+# Payment-service
 
-Payment Service is one of the microservices in the Scalable E-Commerce Platform architecture. The service is responsible for handling payments in the e-commerce system.
 
-## Features
+## Local developemnt with kafka
 
-- **Payment Creation** - generating payment links for orders
-- **Payment Processing** - simulating successful payments
-- **Status Management** - tracking payment status (PENDING, PAID, EXPIRED, CANCELLED, FAILED)
-- **Automatic Expiration** - Quartz Scheduler automatically expires payments after 10 minutes
-- **Outbox Pattern** - preparation for communication with other services
-- **Swagger** - documentation
+1. Run docker-compose.yml to run db and kafka broker
+2. Run payment service with `dev` active profile
 
-## Architecture
+### Access Kafka UI
 
-### Entities
+To access Kafka UI, open the browser and navigate to `http://localhost:8088`.
 
-- **Payment** - main payment entity
-- **PaymentEvent** - payment events (Outbox Pattern)
+### Publishing test message to Kafka topic via Kafka UI
 
-### Payment Statuses
+To publish a test message to Kafka topic via Kafka UI, follow these steps:
 
-- `PENDING` - waiting for payment
-- `PAID` - payment completed
-- `EXPIRED` - payment expired
-- `CANCELLED` - payment cancelled
-- `FAILED` - payment failed
+1. Open Kafka UI in your browser at `http://localhost:8088`.
+2. Select the Kafka cluster you want to interact with.
+3. Select `Topics` from the navigation panel on the left.
+4. Select the given topic you want to publish a message to.
+5. Click on the `Produce Message` button.
+6. In the `Key` field, enter the key identifier for your message
+7. In the `Value` field, enter the message content in JSON format. Example"
 
-### API Endpoints
-
-- `POST /api/v1/payments` - create new payment
-- `GET /api/v1/payments/{id}` - get payment by ID
-- `GET /api/v1/payments/order/{orderId}` - get payment by order ID
-- `GET /api/v1/payments/user/{userId}` - get user payments
-- `POST /api/v1/payments/process/{paymentLink}` - process payment
-- `POST /api/v1/payments/expire` - manually expire payments
-
-## Configuration
-
-### Database
-
-The service requires PostgreSQL. Configuration in `application.properties`:
-
-```properties
-spring.datasource.url=jdbc:postgresql://localhost:9200/payment-service-db
-spring.datasource.username=postgres
-spring.datasource.password=postgres
+8. In payload section add for payment-processed-failed or payment-processed-succeeded. 
+    These events are produced by this service and should be received by order-service (also with `dev` profile active)
+```json
+    {
+      "orderId": "550e8400-e29b-41d4-a716-446655440001",
+      "paymentId": "b526bf0b-da2e-40ba-8062-22d7132e4d95",
+      "processedAt": "2025-10-25T15:06:06"
+    }
 ```
 
 
-### Quartz Scheduler
-
-The service uses Quartz Scheduler for automatic payment expiration:
-
-- **Schedule**: Every 10 minutes (13:00, 13:10, 13:20, 13:30, ...)
-- **Job**: PaymentExpirationJob - expires payments with status PENDING
-- **Store**: In-memory (simple configuration)
-- **Start**: From the next full minute after application startup
-
-## Setup and Running
-
-### 1. Docker
-
-Start PostgreSQL with Docker:
-
-```bash
-docker run -d \
-  --name payment-service-postgres \
-  -e POSTGRES_DB=payment_service \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -p 9200:5432 \
-  postgres:15
-```
-
-### 2. Compile and Run
-
-```bash
-# Compile the project
-./mvnw clean compile
-
-# Run the application
-./mvnw spring-boot:run
-```
-
-## Project Structure
-
-```
-src/main/java/com/ecmsp/paymentservice/
-├── api/
-│   ├── kafka/
-│   │   ├── KafkaPaymentEventPublisher.java
-│   │   ├── PaymentEventPublisher.java
-│   │   ├── PaymentProcessedKafkaEventFailed.java
-│   │   ├── PaymentProcessedKafkaEventSucceeded.java
-│   │   ├── PaymentRequestedKafkaConsumer.java
-│   │   └── PaymentRequestedKafkaEvent.java
-│   └── rest/
-│       ├── health/
-│       │   └── HealthController.java
-│       └── payment/
-│           ├── dto/
-│           │   ├── CreatePaymentRequest.java
-│           │   └── PaymentResponse.java
-│           └── PaymentController.java
-├── aplication/
-│   └── config/
-│       └── KafkaConfiguration.java
-├── payment/
-│   ├── adapter/
-│   │   ├── db/
-│   │   │   ├── PaymentEntity.java
-│   │   │   └── PaymentEventEntity.java
-│   │   ├── job/
-│   │   │   └── PaymentExpirationJob.java
-│   │   ├── repository/
-│   │   │   ├── PaymentEventRepository.java
-│   │   │   └── PaymentRepository.java
-│   │   └── service/
-│   │       └── PaymentService.java
-│   ├── config/
-│   │   ├── OpenApiConfiguration.java
-│   │   └── QuartzConfiguration.java
-│   └── domain/
-│       ├── ClientId.java
-│       ├── Currency.java
-│       ├── OrderId.java
-│       ├── PaymentState.java
-│       └── PaymentToCreate.java
-└── PaymentServiceApplication.java
-```
-
-## Database Schema
-
-The service automatically creates the following tables:
-
-### payments
-
-- `id` - primary key
-- `order_id` - order identifier
-- `user_id` - user identifier
-- `amount` - payment amount
-- `currency` - payment currency
-- `status` - payment status
-- `payment_link` - unique payment link
-- `expires_at` - payment expiration time
-- `paid_at` - payment completion time
-- `created_at` - creation timestamp
-- `updated_at` - last update timestamp
-- `version` - optimistic locking version
-
-### payment_events
-
-- `id` - primary key
-- `payment_id` - reference to payment
-- `event_type` - type of event
-- `event_data` - event data (JSON)
-- `status` - event processing status
-- `retry_count` - retry attempts
-- `processed_at` - processing timestamp
-- `created_at` - creation timestamp
-
-## Scheduled Jobs
-
-### PaymentExpirationJob
-
-- **Purpose**: Automatically expires payments that have passed their expiration time
-- **Schedule**: Every 10 minutes
-- **Logic**: Finds payments with status PENDING and expires_at <= current time
-- **Actions**:
-  - Changes status to EXPIRED
-  - Creates PaymentEvent for Outbox Pattern
-  - Logs expiration details
