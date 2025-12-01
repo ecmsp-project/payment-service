@@ -47,7 +47,7 @@ class KafkaOrderCreatedEventConsumer {
             paymentFacade.createPayment(paymentToCreate, context);
 
             MDC.clear();
-            log.info("Finished processing orderCreated event - CorrelationID: {}", effectiveCorrelationId);
+            log.info("Finished processing orderCreated event - orderId: {}, CorrelationID: {}", createdOrderEvent.orderId(), effectiveCorrelationId);
 
         } catch (Exception e) {
             log.error("Failed to consume payment request for order: {}", createdOrderEvent.orderId(), e);

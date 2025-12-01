@@ -40,6 +40,8 @@ CREATE TABLE payments (
                           CONSTRAINT CHECK_0 CHECK (( status IN ( 'PENDING' , 'PAID' , 'EXPIRED' , 'CREATED' ) )) NOT DEFERRABLE INITIALLY IMMEDIATE
 );
 
+
+
 CREATE INDEX idx_payments_order_id on payments (order_id ASC);
 
 CREATE INDEX idx_payments_user_id on payments (user_id ASC);
@@ -53,3 +55,17 @@ CREATE INDEX idx_payments_payment_link on payments (payment_link ASC);
 CREATE INDEX idx_payments_status_expires_at on payments (status ASC,expires_at ASC);
 
 
+CREATE TABLE kafka_outbox
+(
+    event_id     UUID PRIMARY KEY,
+    payload      TEXT,
+    key          TEXT,
+    topic        TEXT,
+    created_at   TIMESTAMP    NOT NULL,
+    processed    BOOLEAN      NOT NULL DEFAULT FALSE,
+    processed_at TIMESTAMP
+);
+
+CREATE INDEX idx_kafka_outbox_processed ON kafka_outbox (processed);
+CREATE INDEX idx_kafka_outbox_created_at ON kafka_outbox (created_at);
+CREATE INDEX idx_kafka_outbox_processed_at ON kafka_outbox (processed_at) WHERE processed = TRUE;
