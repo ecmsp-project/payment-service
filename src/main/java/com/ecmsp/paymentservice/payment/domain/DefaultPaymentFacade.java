@@ -85,7 +85,7 @@ public class DefaultPaymentFacade implements PaymentFacade {
                 LocalDateTime.now(clock)
         );
 
-        //TODO save to outbox table
+
         paymentRepository.update(paidPayment);
         PaymentEvent.PaymentProcessedSucceeded paymentProcessedSucceededEvent = new PaymentEvent.PaymentProcessedSucceeded(
                 payment.orderId(),

@@ -52,9 +52,6 @@ public class PaymentExpirationService {
                 LocalDateTime.now(clock)
         );
 
-
-        //TODO should be save to outbox table there should be orderId ? what else ... artur put too many fields
-
         paymentRepository.update(expiredPayment);
 
         PaymentEvent.PaymentProcessedFailed paymentProcessedFailed = new PaymentEvent.PaymentProcessedFailed(
